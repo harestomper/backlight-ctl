@@ -1,6 +1,6 @@
 # backlight-ctl
 
-This application is for the smooth adjustment of the brightness of the illumination on laptops, where "raw" or "firmware" devices are available.
+This application is for the smooth adjustment of the brightness of the backlight on laptops, where "raw" or "firmware" devices are available.
 What we have:
 - runs as a service or daemon;
 - has an interface for compatibility with init scripts;
