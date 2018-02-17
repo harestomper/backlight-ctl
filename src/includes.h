@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _SRC_INCLUDES_H_
-#define _SRC_INCLUDES_H_
+#ifndef SRC_INCLUDES_H_
+#define SRC_INCLUDES_H_
 
 #include <stdio.h>
 
@@ -22,4 +22,4 @@
 #include "server.h"
 #include "context.h"
 
-#endif /* _SRC_INCLUDES_H_ */
+#endif /* SRC_INCLUDES_H_ */

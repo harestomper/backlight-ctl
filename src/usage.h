@@ -6,9 +6,9 @@
  *
  */
 
-#ifndef _SRC_USAGE_H_
-#define _SRC_USAGE_H_
+#ifndef SRC_USAGE_H_
+#define SRC_USAGE_H_
 
 void usage_print (int argc, char** argv);
 
-#endif /* _SRC_USAGE_H_ */
+#endif /* SRC_USAGE_H_ */

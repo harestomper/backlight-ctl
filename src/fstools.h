@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _SRC_FSTOOLS_H_
-#define _SRC_FSTOOLS_H_
+#ifndef SRC_FSTOOLS_H_
+#define SRC_FSTOOLS_H_
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 bool_t fs_make_path (char const* path, int mode);
@@ -39,4 +39,4 @@ typedef void (*sock_func_t) (void);
 int fs_open_socket (char const* path, sock_func_t func);
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-#endif /* _SRC_FSTOOLS_H_ */
+#endif /* SRC_FSTOOLS_H_ */
