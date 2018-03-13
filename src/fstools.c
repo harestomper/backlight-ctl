@@ -32,7 +32,8 @@ typedef struct string_t
 } string_t;
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static void string_addn (string_t* s, char const* val, int len)
+static void
+string_addn (string_t* s, char const* val, int len)
 {
   if (len <= 0 || !val || !*val)
     return;
@@ -49,12 +50,11 @@ static void string_addn (string_t* s, char const* val, int len)
       s->len += len;
       s->s[s->len] = 0;
     }
-
-  return;
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t fs_test (char const* path, fs_test_t test)
+bool_t
+fs_test (char const* path, fs_test_t test)
 {
   struct stat st;
   int err = errno;
@@ -85,7 +85,8 @@ bool_t fs_test (char const* path, fs_test_t test)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline char const* slash_strip (char const* p)
+static inline char const*
+slash_strip (char const* p)
 {
   while (p && *p && *p == PATH_SEPARATOR)
     p++;
@@ -93,7 +94,8 @@ static inline char const* slash_strip (char const* p)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline char const* slash_next (char const* p)
+static inline char const*
+slash_next (char const* p)
 {
   while (p && *p && *p != PATH_SEPARATOR)
     p++;
@@ -101,53 +103,51 @@ static inline char const* slash_next (char const* p)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static char* build_path_va (char const* first, va_list args)
+static char*
+build_path_va (char const* first, va_list args)
 {
   string_t str = { 0, 0, null };
   char const sep = PATH_SEPARATOR;
+  char const* end;
+  char const *element, *next;
+  int len;
+  int n_elems = 0;
 
-  while (first)
+  next = first;
+
+  while (next)
     {
-      char const* p = first;
-      char const* pend = p + strlen (first);
-      char const* pit;
+      element = next;
+      next = va_arg (args, char*);
 
-      while (p < pend)
-        {
-          switch (p[0])
-            {
-            case PATH_SEPARATOR:
-              p++;
-              break;
+      len = str.len;
+      end = element + strlen (element);
 
-            case '.':
-              if (p[1] == '.')
-                {
-                  while (str.len > 0 && str.s[str.len] != sep)
-                    str.len--;
-                  p += 2;
-                  break;
-                }
-              else if (p[1] == sep)
-                break;
-              /* no break */
+      if (*element == sep && n_elems)
+        element = slash_strip (element);
 
-            default:
-              pit = slash_next (p);
-              string_addn (&str, &sep, 1);
-              string_addn (&str, p, pit - p);
-              p = pit;
-            }
-        }
+      while (end > element + 1 && end[-1] == sep)
+        end--;
 
-      first = va_arg (args, char*);
+      string_addn (&str, element, end - element);
+
+      if (str.len > len && str.s[str.len - 1] != sep)
+        string_addn (&str, &sep, 1);
+
+      n_elems += (str.len > len);
     }
+
+  while (str.len >= 1 && str.s[str.len - 1] == sep)
+    str.len--;
+
+  str.s[str.len] = 0;
 
   return str.s;
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-char* fs_path_join (char const* first, ...)
+char*
+fs_path_join (char const* first, ...)
 {
   char* retval;
   va_list args;
@@ -160,72 +160,67 @@ char* fs_path_join (char const* first, ...)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-int _mkpath (char const* path, int mode)
+bool_t
+fs_make_path (char const* path, int mode)
 {
-  char const* path_it = path;
-  char *current, *next;
-  int result = 0;
-  bool_t exists_before;
+  struct stat st;
+  char *dup, *saved_cwd, *elem;
+  char const *start, *end;
+  int rc = 0;
 
-  if (*path_it == PATH_SEPARATOR)
+  saved_cwd = getcwd (null, 0);
+  dup = strdup (path);
+  start = dup;
+
+  while (*start && rc == 0)
     {
-      path_it = slash_strip (path_it);
-      path = path_it - 1;
+      end = start + 1;
+
+      // Skip all nonslash charactes
+      for (end = start + 1; *end && end[-1] != '/'; end++)
+        continue;
+
+      // copy the current element, including the trailing slash
+      elem = strndup (start, end - start);
+
+      // Take an mode of the current dir
+      stat (".", &st);
+
+      // Try to go to the dir. If it's
+      // unsuccessful, we try to create it
+      // and again try to go into it.
+      while (rc == 0 && chdir (elem) == -1)
+        rc = mkdir (elem, st.st_mode);
+
+      // reset the error if we tried to re-create the directory.
+      if (errno == EEXIST)
+        errno = 0;
+
+      free (elem);
+
+      // skip all duplicate slashes.
+      start = slash_strip (end);
     }
-  else
-    path_it = slash_next (path_it);
 
-  if ((current = strndup (path, path_it - path)) == null)
-    return ENOMEM;
+  // If there were no errors, then we
+  // are in the last created directory,
+  // which has the same mode as its
+  // parent. If another mode is specified,
+  // then we want to replace it with it.
+  if (rc == 0 && mode)
+    rc = chmod (".", mode);
 
-  exists_before = fs_test (current, FS_EXISTS);
+  rc = chdir (saved_cwd);
 
-  if (exists_before || mkdir (current, mode) == 0)
-    {
-      errno = 0;
-      path_it = slash_strip (path_it);
+  free (saved_cwd);
+  free (dup);
 
-      if (*path_it && chdir (current) == 0)
-        {
-          if ((next = strdup (path_it)) != null)
-            {
-              result = _mkpath (next, mode);
-              free (next);
-            }
-          else
-            result = ENOMEM;
-        }
-      else
-        result = errno;
-    }
-  else
-    result = errno;
-
-  if (result && !exists_before)
-    remove (current);
-
-  free (current);
-
-  return result;
+  return (rc == 0);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t fs_make_path (char const* path, int mode)
-{
-  char* cwd = getcwd (null, 0);
-  int result = _mkpath (path, mode ? mode : (S_IRWXG | S_IRWXU | S_IRWXO));
-
-  if (chdir (cwd) < 0)
-    eprintf ("%s", strerror (errno));
-
-  free (cwd);
-  errno = result;
-
-  return (result == 0);
-}
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-int fs_getint (int fd)
+int
+fs_getint (int fd)
 {
   int val = 0;
   char c;
@@ -239,7 +234,8 @@ int fs_getint (int fd)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void fs_setint (int fd, int val)
+void
+fs_setint (int fd, int val)
 {
 #define len 25
   char buf[len];
@@ -260,7 +256,8 @@ void fs_setint (int fd, int val)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-char* fs_stringf (char const* format, ...)
+char*
+fs_stringf (char const* format, ...)
 {
   va_list args;
   char* retval = null;
@@ -278,7 +275,8 @@ char* fs_stringf (char const* format, ...)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-int fs_open_socket (char const* path, sock_func_t func)
+int
+fs_open_socket (char const* path, sock_func_t func)
 {
   int sock, rc;
   struct sockaddr_un addr;
