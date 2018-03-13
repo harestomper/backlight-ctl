@@ -15,7 +15,8 @@
 #include <string.h>
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void context_spw_init (context_t* self)
+void
+context_spw_init (context_t* self)
 {
   if (!self->workdir)
     self->workdir = strdup (statics_defaults[DEFAULT_WORKDIR].v_str);
@@ -32,7 +33,8 @@ void context_spw_init (context_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static option_t const* find_option (option_t const* options, char const* name)
+static option_t const*
+find_option (option_t const* options, char const* name)
 {
   if (!name || !*name || !options)
     return null;
@@ -64,7 +66,8 @@ static option_t const* find_option (option_t const* options, char const* name)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static context_t* context_allocate (void)
+static context_t*
+context_allocate (void)
 {
   context_t* ret;
 
@@ -79,13 +82,15 @@ static context_t* context_allocate (void)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t dummy_server_start (void)
+static bool_t
+dummy_server_start (void)
 {
   return true;
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-context_t* context_create (int argc, char** argv)
+context_t*
+context_create (int argc, char** argv)
 {
   option_t const* opt = null;
   context_t* ctx = null;
@@ -128,7 +133,8 @@ context_t* context_create (int argc, char** argv)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int parse_string (char** args, char** end, message_t* msg)
+static int
+parse_string (char** args, char** end, message_t* msg)
 {
   int len;
   int smax = sizeof (msg->v_str);
@@ -145,7 +151,8 @@ static int parse_string (char** args, char** end, message_t* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int parse_int (char** args, char** end, message_t* msg)
+static int
+parse_int (char** args, char** end, message_t* msg)
 {
   if (args + 1 >= end)
     return 0;
@@ -166,22 +173,24 @@ static int parse_int (char** args, char** end, message_t* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int parse_error (char** args __attribute__ ((unused)),
-                        char** end __attribute__ ((unused)),
-                        message_t* msg __attribute__ ((unused)))
+static int
+parse_error (char** args __attribute__ ((unused)),
+             char** end __attribute__ ((unused)),
+             message_t* msg __attribute__ ((unused)))
 {
   return 0;
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int parse_none (char** args, char** end,
-                       message_t* msg __attribute__ ((unused)))
+static int
+parse_none (char** args, char** end, message_t* msg __attribute__ ((unused)))
 {
   return (args >= end) ? 0 : 1;
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t context_configure (context_t* ctx, int argc, char** argv)
+bool_t
+context_configure (context_t* ctx, int argc, char** argv)
 {
   typedef int (*parse_t) (char**, char**, message_t*);
   option_t const* opt;
@@ -232,7 +241,8 @@ bool_t context_configure (context_t* ctx, int argc, char** argv)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t context_perform (context_t* ctx, message_t const* msg)
+bool_t
+context_perform (context_t* ctx, message_t const* msg)
 {
   if (ctx->fields[msg->field])
     return (*ctx->fields[msg->field]) (ctx, msg);
@@ -241,7 +251,8 @@ bool_t context_perform (context_t* ctx, message_t const* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t context_run (context_t* ctx)
+bool_t
+context_run (context_t* ctx)
 {
   bool_t retval;
 
@@ -254,7 +265,8 @@ bool_t context_run (context_t* ctx)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void context_destroy (context_t* ctx)
+void
+context_destroy (context_t* ctx)
 {
   if (!ctx)
     return;

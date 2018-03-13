@@ -20,7 +20,8 @@
 #include <unistd.h>
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline char** read_proc_commandline (int pid)
+static inline char**
+read_proc_commandline (int pid)
 {
   char** retval = null;
   char* path;
@@ -61,7 +62,8 @@ static inline char** read_proc_commandline (int pid)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t client_execute_stop_restart (client_t* self)
+static bool_t
+client_execute_stop_restart (client_t* self)
 {
   int pid = 0, fd;
   bool_t result = false;
@@ -117,7 +119,8 @@ static bool_t client_execute_stop_restart (client_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t client_execute (client_t* client)
+static bool_t
+client_execute (client_t* client)
 {
   int sock, size;
   message_t result = MESSAGE_INIT;
@@ -182,7 +185,8 @@ static bool_t client_execute (client_t* client)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t set_message (client_t* ctx, message_t const* msg)
+static bool_t
+set_message (client_t* ctx, message_t const* msg)
 {
   if (ctx->msg.field != FIELD_NONE)
     return false;
@@ -193,7 +197,8 @@ static bool_t set_message (client_t* ctx, message_t const* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static void client_clear (client_t* self)
+static void
+client_clear (client_t* self)
 {
   if (!self)
     return;
@@ -204,25 +209,29 @@ static void client_clear (client_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t set_pidfile (client_t* self, message_t const* msg)
+bool_t
+set_pidfile (client_t* self, message_t const* msg)
 {
   return SETSTR (self->pidfile, msg->v_str);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t set_sockname (client_t* self, message_t const* msg)
+bool_t
+set_sockname (client_t* self, message_t const* msg)
 {
   return SETSTR (self->socketname, msg->v_str);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t set_workdir (client_t* self, message_t const* msg)
+bool_t
+set_workdir (client_t* self, message_t const* msg)
 {
   return SETSTR (self->workdir, msg->v_str);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void client_init (context_t* ctx)
+void
+client_init (context_t* ctx)
 {
   if (!ctx)
     return;

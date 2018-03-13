@@ -15,35 +15,38 @@
 //------------------------------------------------------------------------------
 union default_value_t
 {
-    char const* v_str;
-    int const v_int;
+  char const* v_str;
+  int const v_int;
 };
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 struct message_t
 {
-    union
-    {
-        int v_int;
-        char v_str[STRSIZE];
-    };
+  union
+  {
+    int v_int;
+    char v_str[STRSIZE];
+  };
 
-    field_t field;
-    bool_t read_more;
-    type_t type;
+  field_t field;
+  bool_t read_more;
+  type_t type;
 };
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-#define MESSAGE_INIT { {0}, FIELD_NONE, false, TYPE_NONE}
+#define MESSAGE_INIT                                                           \
+  {                                                                            \
+    { 0 }, FIELD_NONE, false, TYPE_NONE                                        \
+  }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 struct option_t
 {
-    field_t field;
-    char const short_name;
-    char const* long_name;
-    char const* description;
-    default_t defix;
+  field_t field;
+  char const short_name;
+  char const* long_name;
+  char const* description;
+  default_t defix;
 };
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
