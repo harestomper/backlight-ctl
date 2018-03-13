@@ -25,7 +25,7 @@
 #define MAX_POLL_SIZE 10
 #define POLL_TIMEOUT 20
 #define POLL_TIMEOUT_WAIT -1
-#define BACKLIGHT "sys", "class", "backlight"
+#define BACKLIGHT "/", "sys", "class", "backlight"
 #define fround(x) __extension__(((__typeof__(x)) ((int) ((x) + 0.5))))
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
