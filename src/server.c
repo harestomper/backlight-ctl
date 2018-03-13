@@ -72,13 +72,15 @@ static int server_device_get (server_t* self);
 static void set_signals (void);
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline int reply (int sock, void* data, int size)
+static inline int
+reply (int sock, void* data, int size)
 {
   return send (sock, data, size, MSG_NOSIGNAL);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void server_init (context_t* ctx)
+void
+server_init (context_t* ctx)
 {
   server_t* server = (server_t*) ctx;
 
@@ -112,7 +114,8 @@ void server_init (context_t* ctx)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-bool_t server_execute (server_t* self)
+bool_t
+server_execute (server_t* self)
 {
   bool_t result;
   int fd;
@@ -151,7 +154,8 @@ bool_t server_execute (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-void server_clear (server_t* self)
+void
+server_clear (server_t* self)
 {
   if (!self)
     return;
@@ -167,7 +171,8 @@ void server_clear (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_set_devname (server_t* self, char const* devname)
+static bool_t
+server_set_devname (server_t* self, char const* devname)
 {
   if (device_name_is_valid (devname))
     {
@@ -202,7 +207,8 @@ static bool_t server_set_devname (server_t* self, char const* devname)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_save (server_t* self, field_t field)
+static bool_t
+server_save (server_t* self, field_t field)
 {
   int n_fields_to_save = 0;
   config_t conf;
@@ -292,7 +298,8 @@ static bool_t server_save (server_t* self, field_t field)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_load (server_t* self, field_t field)
+static bool_t
+server_load (server_t* self, field_t field)
 {
   config_t conf;
   int size = sizeof (conf);
@@ -328,8 +335,8 @@ static bool_t server_load (server_t* self, field_t field)
     case FIELD_NONE:
 
     case FIELD_DEVNAME:
-      if (!conf.devname[0] &&
-          find_device (conf.devname, sizeof (conf.devname)) == null)
+      if (!conf.devname[0]
+          && find_device (conf.devname, sizeof (conf.devname)) == null)
         return false;
 
       if (!server_set_devname (self, conf.devname))
@@ -373,7 +380,8 @@ static bool_t server_load (server_t* self, field_t field)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int server_is_running (server_t* self)
+static int
+server_is_running (server_t* self)
 {
   char spid[16];
   int pid, fd;
@@ -395,7 +403,8 @@ static int server_is_running (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_prepare (server_t* self)
+static bool_t
+server_prepare (server_t* self)
 {
   int pid;
 
@@ -438,7 +447,8 @@ static bool_t server_prepare (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static void server_adjust (server_t* self)
+static void
+server_adjust (server_t* self)
 {
   int target, newv, current, diff, step;
 
@@ -458,11 +468,11 @@ static void server_adjust (server_t* self)
     }
   else if ((current = server_device_get (self)) != target)
     {
-      float parts = self->transition / (float) POLL_TIMEOUT;
       diff = target - current;
-      step = fround (diff / parts);
-      newv = (diff < 0) ? MAX (current + MIN (step, -fround (parts)), target)
-                        : MIN (current + MAX (step, fround (parts)), target);
+      step = fround (self->level_size / (float) MAX (self->transition, 1.0)
+                     * diff);
+      newv = (diff < 0) ? MAX (current + MIN (step, -1), target)
+                        : MIN (current + MAX (step, 1), target);
 
       if (server_device_set (self, newv))
         self->timeout = POLL_TIMEOUT;
@@ -478,8 +488,8 @@ static void server_adjust (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline void accept_connection (int sock, struct pollfd* start,
-                                      struct pollfd* end)
+static inline void
+accept_connection (int sock, struct pollfd* start, struct pollfd* end)
 {
   for (; start < end && start->fd >= 0; start++)
     ;
@@ -489,7 +499,8 @@ static inline void accept_connection (int sock, struct pollfd* start,
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static inline void handle_message (server_t* self, struct pollfd* ps)
+static inline void
+handle_message (server_t* self, struct pollfd* ps)
 {
   server_message_t smsg = { MESSAGE_INIT, -1 };
   message_t* msg = (message_t*) &smsg;
@@ -516,7 +527,8 @@ static inline void handle_message (server_t* self, struct pollfd* ps)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_start (server_t* self)
+static bool_t
+server_start (server_t* self)
 {
   struct pollfd ps[MAX_POLL_SIZE];
   struct pollfd* psit;
@@ -526,7 +538,8 @@ static bool_t server_start (server_t* self)
   bool_t result;
 
   result = (setsockopt (self->socket, SOL_SOCKET, SO_REUSEADDR, (char*) &on,
-                        sizeof (on)) == 0);
+                        sizeof (on))
+            == 0);
   result = result && (fcntl (self->socket, F_SETFL, O_NONBLOCK) == 0);
   result = result && (listen (self->socket, MAX_POLL_SIZE) == 0);
 
@@ -586,7 +599,8 @@ static bool_t server_start (server_t* self)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_config (server_t* self, message_t const* msg)
+static bool_t
+server_config (server_t* self, message_t const* msg)
 {
   bool_t result = false;
 
@@ -643,7 +657,8 @@ static bool_t server_config (server_t* self, message_t const* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_command (server_t* self, message_t const* msg)
+static bool_t
+server_command (server_t* self, message_t const* msg)
 {
   switch (msg->field)
     {
@@ -688,8 +703,9 @@ static bool_t server_command (server_t* self, message_t const* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t cb_server_stop (server_t* self __attribute__ ((unused)),
-                              server_message_t const* smsg)
+static bool_t
+cb_server_stop (server_t* self __attribute__ ((unused)),
+                server_message_t const* smsg)
 {
   message_t rep;
 
@@ -702,7 +718,8 @@ static bool_t cb_server_stop (server_t* self __attribute__ ((unused)),
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t cb_server_get_saved (server_t* self, server_message_t const* msg)
+static bool_t
+cb_server_get_saved (server_t* self, server_message_t const* msg)
 {
   message_t res = MESSAGE_INIT;
 
@@ -714,8 +731,9 @@ static bool_t cb_server_get_saved (server_t* self, server_message_t const* msg)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t cb_server_device_list (server_t* self __attribute__ ((unused)),
-                                     server_message_t const* msg)
+static bool_t
+cb_server_device_list (server_t* self __attribute__ ((unused)),
+                       server_message_t const* msg)
 {
   DIR* dir;
   char* path;
@@ -767,7 +785,8 @@ static bool_t cb_server_device_list (server_t* self __attribute__ ((unused)),
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t device_name_is_valid (char const* name)
+static bool_t
+device_name_is_valid (char const* name)
 {
   char* setter;
   char* getter;
@@ -786,7 +805,8 @@ static bool_t device_name_is_valid (char const* name)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int get_device_max (char const* devname)
+static int
+get_device_max (char const* devname)
 {
   char* path;
   int value = 0;
@@ -806,7 +826,8 @@ static int get_device_max (char const* devname)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static char* find_device (char* dest, int dest_size)
+static char*
+find_device (char* dest, int dest_size)
 {
   char* path;
   DIR* dir;
@@ -865,7 +886,8 @@ static char* find_device (char* dest, int dest_size)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool_t server_device_set (server_t* self, int value)
+static bool_t
+server_device_set (server_t* self, int value)
 {
   fs_setint (self->dev.set, value);
 
@@ -873,13 +895,15 @@ static bool_t server_device_set (server_t* self, int value)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static int server_device_get (server_t* self)
+static int
+server_device_get (server_t* self)
 {
   return fs_getint (self->dev.get);
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static void signal_handler (int signum)
+static void
+signal_handler (int signum)
 {
   char const* signame = "";
 
@@ -902,7 +926,8 @@ static void signal_handler (int signum)
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static void set_signals (void)
+static void
+set_signals (void)
 {
   if (signal (SIGINT, signal_handler) == SIG_IGN)
     signal (SIGINT, SIG_IGN);
