@@ -1,0 +1,21 @@
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation; either version 2.1 of the License, or
+#  (at your option) any later version.
+
+[Unit]
+Description=Start/stop backlight control daemon.
+After=systemd-backlight@.service
+
+[Service]
+Type=simple
+# RemainAfterExit=yes
+ExecStart=/usr/bin/backlight-ctl start
+ExecStop=/usr/bin/backlight-ctl stop
+ExecReload=/usr/bin/backlight-ctl restart
+RestartSec=1s
+Restart=on-failure
+TimeoutSec=5s
+
